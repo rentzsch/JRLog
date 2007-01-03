@@ -1,0 +1,101 @@
+// !$*UTF8*$!
+{
+	29B97313FDCFA39411CA2CEA /* Project object */ = {
+		activeBuildConfigurationName = Debug;
+		activeExecutable = 79BC13E60B4BB76C00AA9DE7 /* Saw */;
+		activeTarget = 8D1107260486CEB800E47090 /* Saw */;
+		addToTargets = (
+			8D1107260486CEB800E47090 /* Saw */,
+		);
+		codeSenseManager = 79BC13F50B4BB77000AA9DE7 /* Code sense */;
+		executables = (
+			79BC13E60B4BB76C00AA9DE7 /* Saw */,
+		);
+		perUserDictionary = {
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					243,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 189511658;
+			PBXWorkspaceStateSaveDate = 189511658;
+		};
+		sourceControlManager = 79BC13F40B4BB77000AA9DE7 /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	77C8280C06725ACE000B614F /* Saw_AppDelegate.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {459, 4228}}";
+			sepNavSelRange = "{28, 18}";
+			sepNavVisRect = "{{0, 0}, {459, 201}}";
+		};
+	};
+	79A57E3C0B4BB7E600E50393 /* JRLog.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {459, 4200}}";
+			sepNavSelRange = "{1942, 48}";
+			sepNavVisRect = "{{0, 1307}, {459, 201}}";
+			sepNavWindowFrame = "{{38, 843}, {953, 709}}";
+		};
+	};
+	79BC13E60B4BB76C00AA9DE7 /* Saw */ = {
+		isa = PBXExecutable;
+		activeArgIndex = 2147483647;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		dylibVariantSuffix = "";
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = Saw;
+		sourceDirectories = (
+		);
+	};
+	79BC13F40B4BB77000AA9DE7 /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
+		scmConfiguration = {
+		};
+		scmType = "";
+	};
+	79BC13F50B4BB77000AA9DE7 /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	8D1107260486CEB800E47090 /* Saw */ = {
+		activeExec = 0;
+		executables = (
+			79BC13E60B4BB76C00AA9DE7 /* Saw */,
+		);
+	};
+}
