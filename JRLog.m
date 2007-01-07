@@ -73,7 +73,7 @@ JRLogLevel	gDefaultJRLogLevel = JRLogLevel_Debug;
 		destination = [[NSConnection rootProxyForConnectionWithRegisteredName:@"JRLogDestinationDO" host:nil] retain];
 	}
 	if (destination) {
-		@try {
+		NS_DURING
 			[destination logWithDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
 				[[NSBundle mainBundle] bundleIdentifier], @"bundleID",
 				sessionUUID, @"sessionUUID",
@@ -86,14 +86,14 @@ JRLogLevel	gDefaultJRLogLevel = JRLogLevel_Debug;
 				[NSString stringWithUTF8String:function_], @"function",
 				message_, @"message",
 				nil]];
-		} @catch(NSException *x) {
-			if ([[x name] isEqualToString:NSObjectInaccessibleException]) {
+		NS_HANDLER
+			if ([[localException name] isEqualToString:NSObjectInaccessibleException]) {
 				[destination release];
 				destination = nil;
 			} else {
-				@throw x;
+				[localException raise];
 			}
-		}
+		NS_ENDHANDLER
 	} else {
 		// "MyClass.m:123: blah blah"
 		NSLog(@"%@:%u: %@",

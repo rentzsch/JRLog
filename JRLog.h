@@ -31,7 +31,7 @@ BOOL IsJRLogLevelActive(id self_, JRLogLevel level_);
 void JRLog(id self_, JRLogLevel level_, unsigned line_, const char *file_, const char *function_, NSString *format_, ...);
 
 #define JRLOG_CONDITIONALLY(sender,LEVEL,format,...) \
-	if(IsJRLogLevelActive(sender,LEVEL)){JRLog(sender,LEVEL,__LINE__,__FILE__,__PRETTY_FUNCTION__,(format),##__VA_ARGS__);}
+	do{if(IsJRLogLevelActive(sender,LEVEL)){JRLog(sender,LEVEL,__LINE__,__FILE__,__PRETTY_FUNCTION__,(format),##__VA_ARGS__);}}while(0)
 
 #if JRLogOverrideNSLog
 id self;
@@ -45,30 +45,40 @@ id self;
 
 #if defined(JRLOGLEVEL_OFF) || defined(JRLOGLEVEL_FATAL) || defined(JRLOGLEVEL_ERROR) || defined(JRLOGLEVEL_WARN) || defined(JRLOGLEVEL_INFO)
 	#define JRLogDebug(format,...)
+	#define JRCLogDebug(format,...)
 #else
 	#define JRLogDebug(format,...)		JRLOG_CONDITIONALLY(self, JRLogLevel_Debug, format, ##__VA_ARGS__)
+	#define JRCLogDebug(format,...)		JRLOG_CONDITIONALLY(nil, JRLogLevel_Debug, format, ##__VA_ARGS__)
 #endif
 
 #if defined(JRLOGLEVEL_OFF) || defined(JRLOGLEVEL_FATAL) || defined(JRLOGLEVEL_ERROR) || defined(JRLOGLEVEL_WARN)
 	#define JRLogInfo(format,...)
+	#define JRCLogInfo(format,...)
 #else
 	#define JRLogInfo(format,...)		JRLOG_CONDITIONALLY(self, JRLogLevel_Info, format, ##__VA_ARGS__)
+	#define JRCLogInfo(format,...)		JRLOG_CONDITIONALLY(nil, JRLogLevel_Info, format, ##__VA_ARGS__)
 #endif
 
 #if defined(JRLOGLEVEL_OFF) || defined(JRLOGLEVEL_FATAL) || defined(JRLOGLEVEL_ERROR)
 	#define JRLogWarn(format,...)
+	#define JRCLogWarn(format,...)
 #else
 	#define JRLogWarn(format,...)		JRLOG_CONDITIONALLY(self, JRLogLevel_Warn, format, ##__VA_ARGS__)
+	#define JRCLogWarn(format,...)		JRLOG_CONDITIONALLY(nil, JRLogLevel_Warn, format, ##__VA_ARGS__)
 #endif
 
 #if defined(JRLOGLEVEL_OFF) || defined(JRLOGLEVEL_FATAL)
 	#define JRLogError(format,...)
+	#define JRCLogError(format,...)
 #else
 	#define JRLogError(format,...)		JRLOG_CONDITIONALLY(self, JRLogLevel_Error, format, ##__VA_ARGS__)
+	#define JRCLogError(format,...)		JRLOG_CONDITIONALLY(nil, JRLogLevel_Error, format, ##__VA_ARGS__)
 #endif
 
 #if defined(JRLOGLEVEL_OFF)
 	#define JRLogFatal(format,...)
+	#define JRCLogFatal(format,...)
 #else
 	#define JRLogFatal(format,...)		JRLOG_CONDITIONALLY(self, JRLogLevel_Fatal, format, ##__VA_ARGS__)
+	#define JCRLogFatal(format,...)		JRLOG_CONDITIONALLY(nil, JRLogLevel_Fatal, format, ##__VA_ARGS__)
 #endif
