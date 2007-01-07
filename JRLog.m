@@ -25,14 +25,14 @@ JRLogLevel	gDefaultJRLogLevel = JRLogLevel_Debug;
 //
 //
 
-@interface NSObject (JRLogDestinationDO)
-- (void)logWithDictionary:(NSDictionary*)dictionary_;
+@protocol JRLogDestinationDO
+- (oneway void)logWithDictionary:(bycopy NSDictionary*)dictionary_;
 @end
 
 @interface JRLogOutput : NSObject {
-	NSString	*sessionUUID;
-	BOOL		tryDO;
-	id			destination;
+	NSString				*sessionUUID;
+	BOOL					tryDO;
+	id<JRLogDestinationDO>	destination;
 }
 + (id)sharedOutput;
 @end
@@ -88,7 +88,6 @@ JRLogLevel	gDefaultJRLogLevel = JRLogLevel_Debug;
 				nil]];
 		NS_HANDLER
 			if ([[localException name] isEqualToString:NSObjectInaccessibleException]) {
-				[destination release];
 				destination = nil;
 			} else {
 				[localException raise];

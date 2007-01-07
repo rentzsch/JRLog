@@ -6,10 +6,13 @@
 #import "nsenumerate.h"
 #import "CoreData+JRExtensions.h"
 
-@interface SawDO : NSObject {
+@protocol JRLogDestinationDO
+- (oneway void)logWithDictionary:(bycopy NSDictionary*)dictionary_;
+@end
+
+@interface SawDO : NSObject<JRLogDestinationDO> {
 	NSManagedObjectContext *moc;
 }
-- (void)logWithDictionary:(NSDictionary*)dictionary_;
 @end
 @implementation SawDO
 - (id)init {
@@ -19,7 +22,7 @@
 	}
 	return self;
 }
-- (void)logWithDictionary:(NSDictionary*)d_ {
+- (oneway void)logWithDictionary:(bycopy NSDictionary*)d_ {
 	//NSLog(@"%@", d_);
 	NSString *bundleID = [d_ objectForKey:@"bundleID"];
 	
