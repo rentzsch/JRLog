@@ -1,6 +1,4 @@
 #import "AppController.h"
-#define JRLogOverrideNSLog 1
-#import "JRLog.h"
 
 @implementation AppController
 
@@ -17,8 +15,27 @@ static void logC() {
 }
 
 - (void)log:(NSTimer*)timer_ {
+    static i = 0;
+    i++;
+    if ((i % 2) == 0)
+        [AppController setJRLogLogger: self];
+    else
+        [AppController setJRLogLogger: nil];  // Set to default logger
+
 	//logC();
-	NSLog(@"time: %@", [NSCalendarDate date]);
+	JRLogInfo(@"time: %@", [NSCalendarDate date]);
+}
+
+
+- (void)logWithLevel:(JRLogLevel)callerLevel_
+			instance:(NSString*)instance_
+				file:(const char*)file_
+				line:(unsigned)line_
+			function:(const char*)function_
+			 message:(NSString*)message_;
+{
+    // NSLog is overridden to JRLog and will cause infinite recursion
+    fprintf(stderr, "custom log: %s\n", [message_ UTF8String]);
 }
 
 @end

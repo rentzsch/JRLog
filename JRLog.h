@@ -19,12 +19,27 @@ typedef enum {
 	JRLogLevel_Off,
 } JRLogLevel;
 
+@protocol JRLogLogger
+
+- (void)logWithLevel:(JRLogLevel)callerLevel_
+			instance:(NSString*)instance_
+				file:(const char*)file_
+				line:(unsigned)line_
+			function:(const char*)function_
+			 message:(NSString*)message_;
+
+@end
+
 @interface NSObject (JRLogAdditions)
 + (JRLogLevel)classJRLogLevel;
 + (void)setClassJRLogLevel:(JRLogLevel)level_;
 
 + (JRLogLevel)defaultJRLogLevel;
 + (void)setDefaultJRLogLevel:(JRLogLevel)level_;
+
++ (void)setJRLogLogger: (id<JRLogLogger>) logger_;
++ (id<JRLogLogger>)JRLogLogger;
++ (id<JRLogLogger>)defaultJRLogLogger;
 @end
 
 BOOL IsJRLogLevelActive(id self_, JRLogLevel level_);

@@ -29,7 +29,7 @@ JRLogLevel	gDefaultJRLogLevel = JRLogLevel_Debug;
 - (oneway void)logWithDictionary:(bycopy NSDictionary*)dictionary_;
 @end
 
-@interface JRLogOutput : NSObject {
+@interface JRLogOutput : NSObject <JRLogLogger> {
 	NSString				*sessionUUID;
 	BOOL					tryDO;
 	id<JRLogDestinationDO>	destination;
@@ -207,12 +207,13 @@ JRLog(
 	NSString *message = [[NSString alloc] initWithFormat:format_ arguments:args];
 	va_end(args);
 	
-	[[JRLogOutput sharedOutput] logWithLevel:callerLevel_
-									instance:self_ ? [NSString stringWithFormat:@"<%@: %p>", [self_ className], self_] : @"nil"
-										file:file_
-										line:line_
-									function:function_
-									 message:message];
+    id<JRLogLogger> logger = [JRLogOutput JRLogLogger];
+	[logger logWithLevel:callerLevel_
+                instance:self_ ? [NSString stringWithFormat:@"<%@: %p>", [self_ className], self_] : @"nil"
+                    file:file_
+                    line:line_
+                function:function_
+                 message:message];
 	
 	if (JRLogLevel_Fatal == callerLevel_) {
 		exit(0);
@@ -253,6 +254,26 @@ NSMapTable *gClassLoggingLevels = NULL;
 + (void)setDefaultJRLogLevel:(JRLogLevel)level_ {
 	assert(level_ >= JRLogLevel_Debug && level_ <= JRLogLevel_Off);
 	gDefaultJRLogLevel = level_;
+}
+
+static id<JRLogLogger> sLogger = nil;
+
++ (void)setJRLogLogger: (id<JRLogLogger>) logger_;
+{
+    sLogger = logger_;
+}
+
++ (id<JRLogLogger>)JRLogLogger;
+{
+    if (sLogger == nil)
+        return [JRLogOutput sharedOutput];
+    else
+        return sLogger;
+}
+
++ (id<JRLogLogger>)defaultJRLogLogger;
+{
+    return [JRLogOutput sharedOutput];
 }
 
 @end

@@ -7,8 +7,16 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#define JRLogOverrideNSLog 1
+#import "JRLog.h"
 
-@interface AppController : NSObject {
+@interface AppController : NSObject <JRLogLogger> {
 }
 
+- (void)logWithLevel:(JRLogLevel)callerLevel_
+			instance:(NSString*)instance_
+				file:(const char*)file_
+				line:(unsigned)line_
+			function:(const char*)function_
+			 message:(NSString*)message_;
 @end
