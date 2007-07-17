@@ -35,6 +35,7 @@ JRLogLevel	gDefaultJRLogLevel = JRLogLevel_Debug;
 	id<JRLogDestinationDO>	destination;
 }
 + (id)sharedOutput;
+- (void)destinationDOAvailable:(NSNotification*)notification_;
 @end
 @implementation JRLogOutput
 + (id)sharedOutput {
@@ -204,7 +205,7 @@ JRLog(
 	//	
 	va_list args;
 	va_start(args, format_);
-	NSString *message = [[NSString alloc] initWithFormat:format_ arguments:args];
+	NSString *message = [[[NSString alloc] initWithFormat:format_ arguments:args] autorelease];
 	va_end(args);
 	
     id<JRLogLogger> logger = [JRLogOutput JRLogLogger];
