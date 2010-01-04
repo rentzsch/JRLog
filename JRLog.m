@@ -1,6 +1,6 @@
 /*******************************************************************************
 	JRLog.m
-		Copyright (c) 2006-2007 Jonathan 'Wolf' Rentzsch: <http://rentzsch.com>
+		Copyright (c) 2006-2009 Jonathan 'Wolf' Rentzsch: <http://rentzsch.com>
 		Some rights reserved: <http://opensource.org/licenses/mit-license.php>
 
 	***************************************************************************/
