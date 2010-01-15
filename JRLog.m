@@ -31,6 +31,47 @@ NSString *JRLogLevelNames[] = {
 };
 
 //
+//  JRLogCall
+//
+
+@implementation JRLogCall
+
+- (id)initWithLevel:(JRLogLevel)callerLevel_
+           instance:(NSString*)instance_
+               file:(const char*)file_
+               line:(unsigned)line_
+           function:(const char*)function_
+            message:(NSString*)message_
+{
+    self = [super init];
+    if (self) {
+        callerLevel = callerLevel_;
+        instance = [instance_ retain];
+        file = file_;
+        line = line_;
+        function = function_;
+        message = [message_ retain];
+    }
+    return self;
+}
+
+- (void)dealloc {
+    [instance release];
+    [message release];
+    [formattedMessage release];
+    [super dealloc];
+}
+
+- (void)setFormattedMessage:(NSString*)formattedMessage_ {
+    if (formattedMessage != formattedMessage_) {
+        [formattedMessage release];
+        formattedMessage = [formattedMessage_ retain];
+    }
+}
+
+@end
+
+//
 //  JRLogDefaultLogger
 //
 
@@ -77,13 +118,7 @@ NSString *JRLogLevelNames[] = {
 	tryDO = YES;
 }
 
-- (void)logWithLevel:(JRLogLevel)callerLevel_
-			instance:(NSString*)instance_
-				file:(const char*)file_
-				line:(unsigned)line_
-			function:(const char*)function_
-			 message:(NSString*)message_
-{
+- (void)logWithCall:(JRLogCall*)call_ {
 	if (tryDO) {
 		tryDO = NO;
 		destination = [[NSConnection rootProxyForConnectionWithRegisteredName:@"JRLogDestinationDO" host:nil] retain];
@@ -95,12 +130,12 @@ NSString *JRLogLevelNames[] = {
 				sessionUUID, @"sessionUUID",
 				[NSNumber numberWithLong:getpid()], @"pid",
 				[NSDate date], @"date",
-				[NSNumber numberWithInt:callerLevel_], @"level",
-				instance_, @"instance",
-				[NSString stringWithUTF8String:file_], @"file",
-				[NSNumber numberWithUnsignedInt:line_], @"line",
-				[NSString stringWithUTF8String:function_], @"function",
-				message_, @"message",
+				[NSNumber numberWithInt:call_->callerLevel], @"level",
+				call_->instance, @"instance",
+				[NSString stringWithUTF8String:call_->file], @"file",
+				[NSNumber numberWithUnsignedInt:call_->line], @"line",
+				[NSString stringWithUTF8String:call_->function], @"function",
+				call_->message, @"message",
 				nil]];
 		NS_HANDLER
 			if ([[localException name] isEqualToString:NSObjectInaccessibleException]) {
@@ -110,12 +145,7 @@ NSString *JRLogLevelNames[] = {
 			}
 		NS_ENDHANDLER
 	} else {
-        NSString *formattedMessage = [JRLogGetFormatter() formattedMessageWithLevel:callerLevel_
-                                                                           instance:instance_
-                                                                               file:file_
-                                                                               line:line_
-                                                                           function:function_
-                                                                            message:message_];
+        NSString *formattedMessage = [JRLogGetFormatter() formattedMessageWithCall:call_];
         if (formattedMessage) {
             puts([formattedMessage UTF8String]);
         }
@@ -149,23 +179,17 @@ NSString *JRLogLevelNames[] = {
     [dateFormatter release];
     [super dealloc];
 }
-- (NSString*)formattedMessageWithLevel:(JRLogLevel)callerLevel_
-                              instance:(NSString*)instance_
-                                  file:(const char*)file_
-                                  line:(unsigned)line_
-                              function:(const char*)function_
-                               message:(NSString*)message_
-{
+- (NSString*)formattedMessageWithCall:(JRLogCall*)call_ {
     // "yyy-MM-dd HH:mm:ss.S MyProcess[PID:TASK] INFO MyClass.m:123: blah blah"
     return [NSString stringWithFormat:@"%@ %@[%ld:%lx] %@ %@:%u: %@",
             [dateFormatter stringFromDate:[NSDate date]],
             [[NSProcessInfo processInfo] processName],
             getpid(),
             mach_thread_self(),
-            JRLogLevelNames[callerLevel_],
-            [[NSString stringWithUTF8String:file_] lastPathComponent],
-            line_,
-            message_];
+            JRLogLevelNames[call_->callerLevel],
+            [[NSString stringWithUTF8String:call_->file] lastPathComponent],
+            call_->line,
+            call_->message];
 }
 @end
 
@@ -277,12 +301,13 @@ JRLog(
 	va_end(args);
 	
     id<JRLogLogger> logger = JRLogGetLogger();
-	[logger logWithLevel:callerLevel_
-                instance:self_ ? [NSString stringWithFormat:@"<%@: %p>", [self_ className], self_] : @"nil"
-                    file:file_
-                    line:line_
-                function:function_
-                 message:message];
+    JRLogCall *call = [[[JRLogCall alloc] initWithLevel:callerLevel_
+                                               instance:self_ ? [NSString stringWithFormat:@"<%@: %p>", [self_ className], self_] : @"nil"
+                                                   file:file_
+                                                   line:line_
+                                               function:function_
+                                                message:message] autorelease];
+	[logger logWithCall:call];
 	
 	if (JRLogLevel_Fatal == callerLevel_) {
 		exit(1);
