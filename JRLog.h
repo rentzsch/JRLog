@@ -30,6 +30,17 @@ typedef enum {
 
 @end
 
+@protocol JRLogFormatter
+
+- (NSString*)formattedMessageWithLevel:(JRLogLevel)callerLevel_
+                              instance:(NSString*)instance_
+                                  file:(const char*)file_
+                                  line:(unsigned)line_
+                              function:(const char*)function_
+                               message:(NSString*)message_;
+
+@end
+
 @interface NSObject (JRLogAdditions)
 + (JRLogLevel)classJRLogLevel;
 + (void)setClassJRLogLevel:(JRLogLevel)level_;
@@ -40,6 +51,10 @@ typedef enum {
 + (void)setJRLogLogger: (id<JRLogLogger>) logger_;
 + (id<JRLogLogger>)JRLogLogger;
 + (id<JRLogLogger>)defaultJRLogLogger;
+
++ (void)setJRLogFormatter:(id<JRLogFormatter>)formatter_;
++ (id<JRLogFormatter>)JRLogFormatter;
++ (id<JRLogFormatter>)defaultJRLogFormatter;
 @end
 
 #ifdef  __cplusplus
@@ -105,5 +120,6 @@ id self;
 	#define JRLogFatal(format,...)		JRLOG_CONDITIONALLY(self, JRLogLevel_Fatal, format, ##__VA_ARGS__)
 	#define JCRLogFatal(format,...)		JRLOG_CONDITIONALLY(nil, JRLogLevel_Fatal, format, ##__VA_ARGS__)
 #endif
+
 
 #define JRLogNSError(ERROR) if(ERROR){JRLogError(@"%@ %@", ERROR, [ERROR userInfo]);}

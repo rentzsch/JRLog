@@ -15,7 +15,7 @@ static void logC() {
 }
 
 - (void)log:(NSTimer*)timer_ {
-    static i = 0;
+    static int i = 0;
     i++;
     if ((i % 2) == 0)
         [AppController setJRLogLogger: self];
