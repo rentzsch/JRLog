@@ -20,7 +20,7 @@ id self = nil;
 
 static JRLogLevel sDefaultJRLogLevel = JRLogLevel_Debug;
 
-static NSString *kJRLogLevelNames[] = {
+NSString *JRLogLevelNames[] = {
     @"UNSET",
     @"DEBUG",
     @"INFO",
@@ -31,14 +31,14 @@ static NSString *kJRLogLevelNames[] = {
 };
 
 //
-//
+//  JRLogDefaultLogger
 //
 
 @protocol JRLogDestinationDO
 - (oneway void)logWithDictionary:(bycopy NSDictionary*)dictionary_;
 @end
 
-@interface JRDefaultLogger : NSObject <JRLogLogger> {
+@interface JRLogDefaultLogger : NSObject <JRLogLogger> {
 	NSString				*sessionUUID;
 	BOOL					tryDO;
 	id<JRLogDestinationDO>	destination;
@@ -46,11 +46,11 @@ static NSString *kJRLogLevelNames[] = {
 + (id)sharedLogger;
 - (void)destinationDOAvailable:(NSNotification*)notification_;
 @end
-@implementation JRDefaultLogger
+@implementation JRLogDefaultLogger
 + (id)sharedLogger {
-	static JRDefaultLogger *output = nil;
+	static JRLogDefaultLogger *output = nil;
 	if (!output) {
-		output = [[JRDefaultLogger alloc] init];
+		output = [[JRLogDefaultLogger alloc] init];
 	}
 	return output;
 }
@@ -110,12 +110,12 @@ static NSString *kJRLogLevelNames[] = {
 			}
 		NS_ENDHANDLER
 	} else {
-        NSString *formattedMessage = [[NSObject JRLogFormatter] formattedMessageWithLevel:callerLevel_
-                                                                                 instance:instance_
-                                                                                     file:file_
-                                                                                     line:line_
-                                                                                 function:function_
-                                                                                  message:message_];
+        NSString *formattedMessage = [JRLogGetFormatter() formattedMessageWithLevel:callerLevel_
+                                                                           instance:instance_
+                                                                               file:file_
+                                                                               line:line_
+                                                                           function:function_
+                                                                            message:message_];
         if (formattedMessage) {
             puts([formattedMessage UTF8String]);
         }
@@ -124,14 +124,9 @@ static NSString *kJRLogLevelNames[] = {
 @end
 
 //
-//
+//  JRLogDefaultFormatter
 //
 
-@interface JRLogDefaultFormatter : NSObject <JRLogFormatter> {
-    NSDateFormatter *dateFormatter;
-}
-+ (id)sharedFormatter;
-@end
 @implementation JRLogDefaultFormatter
 + (id)sharedFormatter {
 	static JRLogDefaultFormatter *formatter = nil;
@@ -167,7 +162,7 @@ static NSString *kJRLogLevelNames[] = {
             [[NSProcessInfo processInfo] processName],
             getpid(),
             mach_thread_self(),
-            kJRLogLevelNames[callerLevel_],
+            JRLogLevelNames[callerLevel_],
             [[NSString stringWithUTF8String:file_] lastPathComponent],
             line_,
             message_];
@@ -224,7 +219,7 @@ static void LoadJRLogSettings() {
 					}
 				} else {
 					//	Just a plain "JRLogLevel": it's for the default level.
-					[NSObject setDefaultJRLogLevel:level];
+                    JRLogSetDefaultLevel(level);
 				}
 			}
 		}
@@ -233,7 +228,7 @@ static void LoadJRLogSettings() {
 	[pool release];
 }
 
-BOOL IsJRLogLevelActive(id self_, JRLogLevel callerLevel_) {
+BOOL JRLogIsLevelActive(id self_, JRLogLevel callerLevel_) {
 	assert(callerLevel_ >= JRLogLevel_Debug && callerLevel_ <= JRLogLevel_Fatal);
 	
     static BOOL loadedJRLogSettings = NO;
@@ -281,7 +276,7 @@ JRLog(
 	NSString *message = [[[NSString alloc] initWithFormat:format_ arguments:args] autorelease];
 	va_end(args);
 	
-    id<JRLogLogger> logger = [NSObject JRLogLogger];
+    id<JRLogLogger> logger = JRLogGetLogger();
 	[logger logWithLevel:callerLevel_
                 instance:self_ ? [NSString stringWithFormat:@"<%@: %p>", [self_ className], self_] : @"nil"
                     file:file_
@@ -290,8 +285,43 @@ JRLog(
                  message:message];
 	
 	if (JRLogLevel_Fatal == callerLevel_) {
-		exit(0);
+		exit(1);
 	}
+}
+
+JRLogLevel JRLogGetDefaultLevel() {
+    return sDefaultJRLogLevel;
+}
+
+void JRLogSetDefaultLevel(JRLogLevel level_) {
+	assert(level_ >= JRLogLevel_Debug && level_ <= JRLogLevel_Off);
+	sDefaultJRLogLevel = level_;
+}
+
+static id<JRLogLogger> sLogger = nil;
+
+id<JRLogLogger> JRLogGetLogger() {
+    return sLogger ? sLogger : [JRLogDefaultLogger sharedLogger];
+}
+
+void JRLogSetLogger(id<JRLogLogger> logger_) {
+    if (sLogger != logger_) {
+        [(id)sLogger release];
+        sLogger = [(id)logger_ retain];
+    }
+}
+
+static id<JRLogFormatter> sFormatter = nil;
+
+id<JRLogFormatter> JRLogGetFormatter() {
+    return sFormatter ? sFormatter : [JRLogDefaultFormatter sharedFormatter];
+}
+
+void JRLogSetFormatter(id<JRLogFormatter> formatter_) {
+    if (sFormatter != formatter_) {
+        [(id)sFormatter release];
+        sFormatter = [(id)formatter_ retain];
+    }
 }
 
 @implementation NSObject (JRLogAdditions)
@@ -323,49 +353,6 @@ NSMapTable *gClassLoggingLevels = NULL;
 	} else {
 		NSMapInsert(gClassLoggingLevels, self, (const void*)level_);
 	}
-}
-
-+ (JRLogLevel)defaultJRLogLevel {
-	return sDefaultJRLogLevel;
-}
-
-+ (void)setDefaultJRLogLevel:(JRLogLevel)level_ {
-	assert(level_ >= JRLogLevel_Debug && level_ <= JRLogLevel_Off);
-	sDefaultJRLogLevel = level_;
-}
-
-static id<JRLogLogger> sLogger = nil;
-
-+ (void)setJRLogLogger:(id<JRLogLogger>)logger_ {
-    if (sLogger != logger_) {
-        [(id)sLogger release];
-        sLogger = [(id)logger_ retain];
-    }
-}
-
-+ (id<JRLogLogger>)JRLogLogger {
-    return sLogger ? sLogger : [JRDefaultLogger sharedLogger];
-}
-
-+ (id<JRLogLogger>)defaultJRLogLogger {
-    return [JRDefaultLogger sharedLogger];
-}
-
-static id<JRLogFormatter> sFormatter = nil;
-
-+ (void)setJRLogFormatter:(id<JRLogFormatter>)formatter_ {
-    if (sFormatter != formatter_) {
-        [(id)sFormatter release];
-        sFormatter = [(id)formatter_ retain];
-    }
-}
-
-+ (id<JRLogFormatter>)JRLogFormatter {
-    return sFormatter ? sFormatter : [JRLogDefaultFormatter sharedFormatter];
-}
-
-+ (id<JRLogFormatter>)defaultJRLogFormatter {
-    return [JRLogDefaultFormatter sharedFormatter];
 }
 
 @end

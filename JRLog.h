@@ -19,57 +19,60 @@ typedef enum {
 	JRLogLevel_Off,
 } JRLogLevel;
 
-@protocol JRLogLogger
+extern NSString *JRLogLevelNames[]; // JRLogLevelNames[JRLogLevel_Debug] => @"DEBUG".
 
+@protocol JRLogLogger
 - (void)logWithLevel:(JRLogLevel)callerLevel_
 			instance:(NSString*)instance_
 				file:(const char*)file_
 				line:(unsigned)line_
 			function:(const char*)function_
 			 message:(NSString*)message_;
-
 @end
 
 @protocol JRLogFormatter
-
 - (NSString*)formattedMessageWithLevel:(JRLogLevel)callerLevel_
                               instance:(NSString*)instance_
                                   file:(const char*)file_
                                   line:(unsigned)line_
                               function:(const char*)function_
                                message:(NSString*)message_;
+@end
 
+@interface JRLogDefaultFormatter : NSObject<JRLogFormatter> {
+    NSDateFormatter *dateFormatter;
+}
++ (id)sharedFormatter;
 @end
 
 @interface NSObject (JRLogAdditions)
 + (JRLogLevel)classJRLogLevel;
 + (void)setClassJRLogLevel:(JRLogLevel)level_;
-
-+ (JRLogLevel)defaultJRLogLevel;
-+ (void)setDefaultJRLogLevel:(JRLogLevel)level_;
-
-+ (void)setJRLogLogger: (id<JRLogLogger>) logger_;
-+ (id<JRLogLogger>)JRLogLogger;
-+ (id<JRLogLogger>)defaultJRLogLogger;
-
-+ (void)setJRLogFormatter:(id<JRLogFormatter>)formatter_;
-+ (id<JRLogFormatter>)JRLogFormatter;
-+ (id<JRLogFormatter>)defaultJRLogFormatter;
 @end
 
 #ifdef  __cplusplus
 extern "C" {
 #endif
     
-BOOL IsJRLogLevelActive(id self_, JRLogLevel level_);
-void JRLog(id self_, JRLogLevel level_, unsigned line_, const char *file_, const char *function_, NSString *format_, ...);
+BOOL                JRLogIsLevelActive(id self_, JRLogLevel level_);
+    
+void                JRLog(id self_, JRLogLevel level_, unsigned line_, const char *file_, const char *function_, NSString *format_, ...);
+    
+JRLogLevel          JRLogGetDefaultLevel();
+void                JRLogSetDefaultLevel(JRLogLevel level_);
+
+id<JRLogLogger>     JRLogGetLogger();
+void                JRLogSetLogger(id<JRLogLogger> logger_);
+
+id<JRLogFormatter>  JRLogGetFormatter();
+void                JRLogSetFormatter(id<JRLogFormatter> formatter_);
 
 #ifdef  __cplusplus
 }
 #endif
 
 #define JRLOG_CONDITIONALLY(sender,LEVEL,format,...) \
-	do{if(IsJRLogLevelActive(sender,LEVEL)){JRLog(sender,LEVEL,__LINE__,__FILE__,__PRETTY_FUNCTION__,(format),##__VA_ARGS__);}}while(0)
+	do{if(JRLogIsLevelActive(sender,LEVEL)){JRLog(sender,LEVEL,__LINE__,__FILE__,__PRETTY_FUNCTION__,(format),##__VA_ARGS__);}}while(0)
 
 #if JRLogOverrideNSLog
 id self;
