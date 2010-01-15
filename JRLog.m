@@ -1,6 +1,6 @@
 /*******************************************************************************
 	JRLog.m
-		Copyright (c) 2006-2009 Jonathan 'Wolf' Rentzsch: <http://rentzsch.com>
+		Copyright (c) 2006-2010 Jonathan 'Wolf' Rentzsch: <http://rentzsch.com>
 		Some rights reserved: <http://opensource.org/licenses/mit-license.php>
 
 	***************************************************************************/
@@ -48,7 +48,13 @@ JRLogLevel	gDefaultJRLogLevel = JRLogLevel_Debug;
 - (id)init {
 	self = [super init];
 	if (self) {
-		sessionUUID = (id)CFUUIDCreateString(kCFAllocatorDefault, CFUUIDCreate(kCFAllocatorDefault));
+        CFUUIDRef uuid = CFUUIDCreate(kCFAllocatorDefault);
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+        sessionUUID = (id)CFUUIDCreateString(kCFAllocatorDefault, uuid);
+#else
+        sessionUUID = NSMakeCollectable(CFUUIDCreateString(kCFAllocatorDefault, uuid));
+#endif
+        CFRelease(uuid);
 		[[NSDistributedNotificationCenter defaultCenter] addObserver:self
 															selector:@selector(destinationDOAvailable:)
 																name:@"JRLogDestinationDOAvailable"

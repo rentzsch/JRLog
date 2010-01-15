@@ -1,6 +1,6 @@
 /*******************************************************************************
 	JRLog.h
-		Copyright (c) 2006-2009 Jonathan 'Wolf' Rentzsch: <http://rentzsch.com>
+		Copyright (c) 2006-2010 Jonathan 'Wolf' Rentzsch: <http://rentzsch.com>
 		Some rights reserved: <http://opensource.org/licenses/mit-license.php>
 
 	***************************************************************************/
@@ -42,8 +42,16 @@ typedef enum {
 + (id<JRLogLogger>)defaultJRLogLogger;
 @end
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+    
 BOOL IsJRLogLevelActive(id self_, JRLogLevel level_);
 void JRLog(id self_, JRLogLevel level_, unsigned line_, const char *file_, const char *function_, NSString *format_, ...);
+
+#ifdef  __cplusplus
+}
+#endif
 
 #define JRLOG_CONDITIONALLY(sender,LEVEL,format,...) \
 	do{if(IsJRLogLevelActive(sender,LEVEL)){JRLog(sender,LEVEL,__LINE__,__FILE__,__PRETTY_FUNCTION__,(format),##__VA_ARGS__);}}while(0)
@@ -97,3 +105,5 @@ id self;
 	#define JRLogFatal(format,...)		JRLOG_CONDITIONALLY(self, JRLogLevel_Fatal, format, ##__VA_ARGS__)
 	#define JCRLogFatal(format,...)		JRLOG_CONDITIONALLY(nil, JRLogLevel_Fatal, format, ##__VA_ARGS__)
 #endif
+
+#define JRLogNSError(ERROR) if(ERROR){JRLogError(@"%@ %@", ERROR, [ERROR userInfo]);}
