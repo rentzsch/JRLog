@@ -67,6 +67,7 @@ extern "C" {
 BOOL                JRLogIsLevelActive(id self_, JRLogLevel level_);
     
 void                JRLog(id self_, JRLogLevel level_, unsigned line_, const char *file_, const char *function_, NSString *format_, ...);
+void                JRLogAssertionFailure(id self_, unsigned line_, const char *file_, const char *function_, const char *condition_, NSString *format_, ...);
     
 JRLogLevel          JRLogGetDefaultLevel();
 void                JRLogSetDefaultLevel(JRLogLevel level_);
