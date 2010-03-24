@@ -316,6 +316,41 @@ JRLog(
     }
 }
 
+    void
+JRLogAssertionFailure(
+    id          self_,
+    unsigned    line_,
+    const char  *file_,
+    const char  *function_,
+    const char  *condition_,
+    NSString    *format_,
+    ...)
+{
+    assert(file_);
+    assert(function_);
+    assert(condition_);
+    
+    NSString *message;
+    if (format_) {
+        va_list args;
+        va_start(args, format_);
+        message = [[[NSString alloc] initWithFormat:format_ arguments:args] autorelease];
+        va_end(args);
+        message = [NSString stringWithFormat:@"%s (%@)", condition_, message];
+    } else {
+        message = [NSString stringWithUTF8String:condition_];
+    }
+    
+    id<JRLogLogger> logger = JRLogGetLogger();
+    JRLogCall *call = [[[JRLogCall alloc] initWithLevel:JRLogLevel_Assert
+                                               instance:self_ ? [NSString stringWithFormat:@"<%@: %p>", [self_ className], self_] : @"nil"
+                                                   file:file_
+                                                   line:line_
+                                               function:function_
+                                                message:message] autorelease];
+    [logger logWithCall:call];
+}
+
 JRLogLevel JRLogGetDefaultLevel() {
     return sDefaultJRLogLevel;
 }
