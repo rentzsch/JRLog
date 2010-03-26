@@ -182,11 +182,12 @@ NSString *JRLogLevelNames[] = {
 }
 - (NSString*)formattedMessageWithCall:(JRLogCall*)call_ {
     // "yyy-MM-dd HH:mm:ss.S MyProcess[PID:TASK] INFO MyClass.m:123: blah blah"
-    return [NSString stringWithFormat:@"%@ %@[%ld:%lx] %@ %@:%u: %@",
+    NSString *threadID = [NSString stringWithFormat:@"%lx", mach_thread_self()];
+    return [NSString stringWithFormat:@"%@ %@[%ld:%@] %@ %@:%u: %@",
             [dateFormatter stringFromDate:[NSDate date]],
             [[NSProcessInfo processInfo] processName],
             getpid(),
-            mach_thread_self(),
+            threadID,
             JRLogLevelNames[call_->callerLevel],
             [[NSString stringWithUTF8String:call_->file] lastPathComponent],
             call_->line,
