@@ -350,6 +350,12 @@ JRLogAssertionFailure(
                                                function:function_
                                                 message:message] autorelease];
     [logger logWithCall:call];
+    
+    // This is just here so "Stop on Objective-C Exception" will catch assertion failures.
+    NS_DURING
+        [NSException raise:@"JRLogAssertionFailure" format:nil];
+    NS_HANDLER
+    NS_ENDHANDLER
 }
 
 JRLogLevel JRLogGetDefaultLevel() {
