@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 #if JRLogOverrideNSLog
-id self = nil;
+    id self = nil;
 #endif
 #undef NSLog
 
@@ -240,7 +240,7 @@ static void LoadJRLogSettings() {
                     //  It's a pseudo-keypath: JRLogLevel.MyClassName.
                     Class c = NSClassFromString([keyNames lastObject]);
                     if (c) {
-                        [c setClassJRLogLevel:level];
+                        JRLogSetClassLevel(c, level);
                     } else {
                         NSLog(@"JRLog: unknown class \"%@\"", [keyNames lastObject]);
                     }
@@ -270,7 +270,7 @@ BOOL JRLogIsLevelActive(id self_, JRLogLevel callerLevel_) {
     
     JRLogLevel currentLevel;
     if (self_) {
-        currentLevel = [[self_ class] classJRLogLevel];
+        currentLevel = JRLogGetClassLevel([self_ class]);
         if (JRLogLevel_UNSET == currentLevel) { 
             currentLevel = sDefaultJRLogLevel;
         }
@@ -367,6 +367,36 @@ void JRLogSetDefaultLevel(JRLogLevel level_) {
     sDefaultJRLogLevel = level_;
 }
 
+NSMapTable* classLoggingLevels() {
+    static NSMapTable *sClassLoggingLevels = NULL;
+    if (!sClassLoggingLevels) {
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+        sClassLoggingLevels = NSCreateMapTable(NSIntMapKeyCallBacks, NSIntMapValueCallBacks, 32);
+#else
+        sClassLoggingLevels = NSCreateMapTable(NSIntegerMapKeyCallBacks, NSIntegerMapValueCallBacks, 32);
+#endif
+    }
+    return sClassLoggingLevels;
+}
+
+JRLogLevel JRLogGetClassLevel(Class class_) {
+    void *mapValue = NSMapGet(classLoggingLevels(), class_);
+    if (mapValue) {
+        return (JRLogLevel)mapValue;
+    } else {
+        Class superclass = [class_ superclass];
+        return superclass ? JRLogGetClassLevel(superclass) : JRLogLevel_UNSET;
+    }
+}
+
+void JRLogSetClassLevel(Class class_, JRLogLevel level_) {
+    if (JRLogLevel_UNSET == level_) {
+        NSMapRemove(classLoggingLevels(), class_);
+    } else {
+        NSMapInsert(classLoggingLevels(), class_, (const void*)level_);
+    }
+}
+
 static id<JRLogLogger> sLogger = nil;
 
 id<JRLogLogger> JRLogGetLogger() {
@@ -392,36 +422,3 @@ void JRLogSetFormatter(id<JRLogFormatter> formatter_) {
         sFormatter = [(id)formatter_ retain];
     }
 }
-
-@implementation NSObject (JRLogAdditions)
-
-NSMapTable *gClassLoggingLevels = NULL;
-+ (void)load {
-    if (!gClassLoggingLevels) {
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-        gClassLoggingLevels = NSCreateMapTable(NSIntMapKeyCallBacks, NSIntMapValueCallBacks, 32);
-#else
-        gClassLoggingLevels = NSCreateMapTable(NSIntegerMapKeyCallBacks, NSIntegerMapValueCallBacks, 32);
-#endif
-    }
-}
-
-+ (JRLogLevel)classJRLogLevel {
-    void *mapValue = NSMapGet(gClassLoggingLevels, self);
-    if (mapValue) {
-        return (JRLogLevel)mapValue;
-    } else {
-        Class superclass = [self superclass];
-        return superclass ? [superclass classJRLogLevel] : JRLogLevel_UNSET;
-    }
-}
-
-+ (void)setClassJRLogLevel:(JRLogLevel)level_ {
-    if (JRLogLevel_UNSET == level_) {
-        NSMapRemove(gClassLoggingLevels, self);
-    } else {
-        NSMapInsert(gClassLoggingLevels, self, (const void*)level_);
-    }
-}
-
-@end

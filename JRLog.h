@@ -69,12 +69,6 @@ extern NSString *JRLogLevelNames[]; // JRLogLevelNames[JRLogLevel_Debug] => @"DE
 @end
 #define JRLogDefaultFormatter NS(JRLogDefaultFormatter)
 
-@interface NSObject (NS(JRLogAdditions))
-+ (JRLogLevel)classJRLogLevel;
-+ (void)setClassJRLogLevel:(JRLogLevel)level_;
-@end
-#define JRLogAdditions NS(JRLogAdditions)
-
 #ifdef  __cplusplus
     extern "C" {
 #endif
@@ -86,6 +80,9 @@ void                JRLogAssertionFailure(id self_, unsigned line_, const char *
     
 JRLogLevel          JRLogGetDefaultLevel();
 void                JRLogSetDefaultLevel(JRLogLevel level_);
+        
+JRLogLevel          JRLogGetClassLevel(Class class_);
+void                JRLogSetClassLevel(Class class_, JRLogLevel level_);
 
 id<JRLogLogger>     JRLogGetLogger();
 void                JRLogSetLogger(id<JRLogLogger> logger_);
