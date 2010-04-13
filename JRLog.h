@@ -22,7 +22,17 @@ typedef enum {
 
 extern NSString *JRLogLevelNames[]; // JRLogLevelNames[JRLogLevel_Debug] => @"DEBUG".
 
-@interface JRLogCall : NSObject {
+#ifndef NS
+    #ifdef NS_NAMESPACE
+        #define JRNS_CONCAT_TOKENS(a,b) a##_##b
+        #define JRNS_EVALUATE(a,b) JRNS_CONCAT_TOKENS(a,b)
+        #define NS(original_name) JRNS_EVALUATE(NS_NAMESPACE, original_name)
+    #else
+        #define NS(original_name) original_name
+    #endif
+#endif
+
+@interface NS(JRLogCall) : NSObject {
 @public
     JRLogLevel  callerLevel;
     NSString    *instance;
@@ -40,28 +50,33 @@ extern NSString *JRLogLevelNames[]; // JRLogLevelNames[JRLogLevel_Debug] => @"DE
             message:(NSString*)message_;
 - (void)setFormattedMessage:(NSString*)formattedMessage_;
 @end
+#define JRLogCall NS(JRLogCall)
 
-@protocol JRLogLogger
+@protocol NS(JRLogLogger)
 - (void)logWithCall:(JRLogCall*)call_;
 @end
+#define JRLogLogger NS(JRLogLogger)
 
-@protocol JRLogFormatter
+@protocol NS(JRLogFormatter)
 - (NSString*)formattedMessageWithCall:(JRLogCall*)call_;
 @end
+#define JRLogFormatter NS(JRLogFormatter)
 
-@interface JRLogDefaultFormatter : NSObject<JRLogFormatter> {
+@interface NS(JRLogDefaultFormatter) : NSObject<JRLogFormatter> {
     NSDateFormatter *dateFormatter;
 }
 + (id)sharedFormatter;
 @end
+#define JRLogDefaultFormatter NS(JRLogDefaultFormatter)
 
-@interface NSObject (JRLogAdditions)
+@interface NSObject (NS(JRLogAdditions))
 + (JRLogLevel)classJRLogLevel;
 + (void)setClassJRLogLevel:(JRLogLevel)level_;
 @end
+#define JRLogAdditions NS(JRLogAdditions)
 
 #ifdef  __cplusplus
-extern "C" {
+    extern "C" {
 #endif
     
 BOOL                JRLogIsLevelActive(id self_, JRLogLevel level_);
@@ -79,7 +94,7 @@ id<JRLogFormatter>  JRLogGetFormatter();
 void                JRLogSetFormatter(id<JRLogFormatter> formatter_);
 
 #ifdef  __cplusplus
-}
+    }
 #endif
 
 #define JRLOG_CONDITIONALLY(sender, LEVEL, format, ...) \
@@ -97,8 +112,8 @@ void                JRLogSetFormatter(id<JRLogFormatter> formatter_);
     }while(0);
 
 #if JRLogOverrideNSLog
-id self;
-#define NSLog JRLogInfo
+    id self;
+    #define NSLog JRLogInfo
 #endif
 
 //
