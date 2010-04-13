@@ -353,7 +353,7 @@ JRLogAssertionFailure(
     
     // This is just here so "Stop on Objective-C Exception" will catch assertion failures.
     NS_DURING
-        [NSException raise:@"JRLogAssertionFailure" format:nil];
+        [NSException raise:@"JRLogAssertionFailure" format:@""];
     NS_HANDLER
     NS_ENDHANDLER
 }
