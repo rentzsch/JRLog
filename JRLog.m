@@ -1,9 +1,6 @@
-/*******************************************************************************
-    JRLog.m
-        Copyright (c) 2006-2010 Jonathan 'Wolf' Rentzsch: <http://rentzsch.com>
-        Some rights reserved: <http://opensource.org/licenses/mit-license.php>
-
-    ***************************************************************************/
+// JRLog 1.1: https://github.com/rentzsch/JRLog
+//   Copyright (c) 2006-2011 Jonathan 'Wolf' Rentzsch: http://rentzsch.com
+//   Some rights reserved: http://opensource.org/licenses/mit-license.php
 
 #import "JRLog.h"
 #include <unistd.h>
