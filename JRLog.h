@@ -1,9 +1,6 @@
-/*******************************************************************************
-    JRLog.h
-        Copyright (c) 2006-2010 Jonathan 'Wolf' Rentzsch: <http://rentzsch.com>
-        Some rights reserved: <http://opensource.org/licenses/mit-license.php>
-
-    ***************************************************************************/
+// JRLog 1.1: https://github.com/rentzsch/JRLog
+//   Copyright (c) 2006-2011 Jonathan 'Wolf' Rentzsch: http://rentzsch.com
+//   Some rights reserved: http://opensource.org/licenses/mit-license.php
 
 #import <Foundation/Foundation.h>
 
@@ -121,50 +118,64 @@ void                JRLogSetFormatter(id<JRLogFormatter> formatter_);
 #if defined(JRLOGLEVEL_OFF) || defined(JRLOGLEVEL_FATAL) || defined(JRLOGLEVEL_ASSERT) || defined(JRLOGLEVEL_ERROR) || defined(JRLOGLEVEL_WARN) || defined(JRLOGLEVEL_INFO)
     #define JRLogDebug(format,...)
     #define JRCLogDebug(format,...)
+    #define JRBLogDebug(format,...)
 #else
     #define JRLogDebug(format,...)              JRLOG_CONDITIONALLY(self, JRLogLevel_Debug, format, ##__VA_ARGS__)
     #define JRCLogDebug(format,...)             JRLOG_CONDITIONALLY(nil, JRLogLevel_Debug, format, ##__VA_ARGS__)
+    #define JRBLogDebug(format,...)             JRLOG_CONDITIONALLY(blockSelf, JRLogLevel_Debug, format, ##__VA_ARGS__)
 #endif
 
 #if defined(JRLOGLEVEL_OFF) || defined(JRLOGLEVEL_FATAL) || defined(JRLOGLEVEL_ASSERT) || defined(JRLOGLEVEL_ERROR) || defined(JRLOGLEVEL_WARN)
     #define JRLogInfo(format,...)
     #define JRCLogInfo(format,...)
+    #define JRBLogInfo(format,...)
 #else
     #define JRLogInfo(format,...)               JRLOG_CONDITIONALLY(self, JRLogLevel_Info, format, ##__VA_ARGS__)
     #define JRCLogInfo(format,...)              JRLOG_CONDITIONALLY(nil, JRLogLevel_Info, format, ##__VA_ARGS__)
+    #define JRBLogInfo(format,...)              JRLOG_CONDITIONALLY(blockSelf, JRLogLevel_Info, format, ##__VA_ARGS__)
 #endif
 
 #if defined(JRLOGLEVEL_OFF) || defined(JRLOGLEVEL_FATAL) || defined(JRLOGLEVEL_ASSERT) || defined(JRLOGLEVEL_ERROR)
     #define JRLogWarn(format,...)
     #define JRCLogWarn(format,...)
+    #define JRBLogWarn(format,...)
 #else
     #define JRLogWarn(format,...)               JRLOG_CONDITIONALLY(self, JRLogLevel_Warn, format, ##__VA_ARGS__)
     #define JRCLogWarn(format,...)              JRLOG_CONDITIONALLY(nil, JRLogLevel_Warn, format, ##__VA_ARGS__)
+    #define JRBLogWarn(format,...)              JRLOG_CONDITIONALLY(blockSelf, JRLogLevel_Warn, format, ##__VA_ARGS__)
 #endif
 
 #if defined(JRLOGLEVEL_OFF) || defined(JRLOGLEVEL_FATAL) || defined(JRLOGLEVEL_ASSERT)
     #define JRLogError(format,...)
     #define JRCLogError(format,...)
+    #define JRBLogError(format,...)
 #else
     #define JRLogError(format,...)              JRLOG_CONDITIONALLY(self, JRLogLevel_Error, format, ##__VA_ARGS__)
     #define JRCLogError(format,...)             JRLOG_CONDITIONALLY(nil, JRLogLevel_Error, format, ##__VA_ARGS__)
+    #define JRBLogError(format,...)             JRLOG_CONDITIONALLY(blockSelf, JRLogLevel_Error, format, ##__VA_ARGS__)
 #endif
 
 #if defined(JRLOGLEVEL_OFF) || defined(JRLOGLEVEL_FATAL)
     #define JRLogAssert(condition)
     #define JRCLogAssert(condition,format,...)
+    #define JRBLogAssert(condition,format,...)
 #else
     #define JRLogAssert(condition,format,...)   JRLOGASSERT_CONDITIONALLY(self, condition, format, ##__VA_ARGS__)
     #define JRCLogAssert(condition,format,...)  JRLOGASSERT_CONDITIONALLY(nil, condition, format, ##__VA_ARGS__)
+    #define JRBLogAssert(condition,format,...)  JRLOGASSERT_CONDITIONALLY(blockSelf, condition, format, ##__VA_ARGS__)
 #endif
 
 #if defined(JRLOGLEVEL_OFF)
     #define JRLogFatal(format,...)
     #define JRCLogFatal(format,...)
+    #define JRBLogFatal(format,...)
 #else
     #define JRLogFatal(format,...)              JRLOG_CONDITIONALLY(self, JRLogLevel_Fatal, format, ##__VA_ARGS__)
-    #define JCRLogFatal(format,...)             JRLOG_CONDITIONALLY(nil, JRLogLevel_Fatal, format, ##__VA_ARGS__)
+    #define JRCLogFatal(format,...)             JRLOG_CONDITIONALLY(nil, JRLogLevel_Fatal, format, ##__VA_ARGS__)
+    #define JRBLogFatal(format,...)             JRLOG_CONDITIONALLY(blockSelf, JRLogLevel_Fatal, format, ##__VA_ARGS__)
 #endif
 
 
 #define JRLogNSError(ERROR) if(ERROR){JRLogError(@"%@ %@", ERROR, [ERROR userInfo]);}
+#define JRCLogNSError(ERROR) if(ERROR){JRCLogError(@"%@ %@", ERROR, [ERROR userInfo]);}
+#define JRBLogNSError(ERROR) if(ERROR){JRBLogError(@"%@ %@", ERROR, [ERROR userInfo]);}
