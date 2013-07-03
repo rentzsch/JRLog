@@ -98,21 +98,25 @@ NSString *JRLogLevelNames[] = {
     self = [super init];
     if (self) {
         CFUUIDRef uuid = CFUUIDCreate(kCFAllocatorDefault);
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+        
+#if TARGET_OS_IPHONE
         sessionUUID = (id)CFUUIDCreateString(kCFAllocatorDefault, uuid);
-#else
-        sessionUUID = NSMakeCollectable(CFUUIDCreateString(kCFAllocatorDefault, uuid));
-#endif
-        CFRelease(uuid);
-#ifdef __IPHONE_OS_VERSION_MIN_REQUIRED
         tryDO = NO;
 #else
+    #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
+        sessionUUID = (id)CFUUIDCreateString(kCFAllocatorDefault, uuid);
+    #else
+        sessionUUID = NSMakeCollectable(CFUUIDCreateString(kCFAllocatorDefault, uuid));
+    #endif
+        
         [[NSDistributedNotificationCenter defaultCenter] addObserver:self
                                                             selector:@selector(destinationDOAvailable:)
                                                                 name:@"JRLogDestinationDOAvailable"
                                                               object:nil];
         tryDO = YES;
 #endif
+        
+        CFRelease(uuid);
     }
     return self;
 }
@@ -124,7 +128,7 @@ NSString *JRLogLevelNames[] = {
 - (void)logWithCall:(JRLogCall*)call_ {
     if (tryDO) {
         tryDO = NO;
-#ifndef __IPHONE_OS_VERSION_MIN_REQUIRED
+#if !TARGET_OS_IPHONE
         destination = (id)[[NSConnection rootProxyForConnectionWithRegisteredName:@"JRLogDestinationDO" host:nil] retain];
 #endif
     }
