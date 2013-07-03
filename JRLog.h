@@ -1,6 +1,7 @@
-// JRLog 1.1: https://github.com/rentzsch/JRLog
-//   Copyright (c) 2006-2011 Jonathan 'Wolf' Rentzsch: http://rentzsch.com
-//   Some rights reserved: http://opensource.org/licenses/mit-license.php
+// JRLog.h semver:1.2
+//   Copyright (c) 2006-2013 Jonathan 'Wolf' Rentzsch: http://rentzsch.com
+//   Some rights reserved: http://opensource.org/licenses/mit
+//   https://github.com/rentzsch/JRLog
 
 #import <Foundation/Foundation.h>
 
