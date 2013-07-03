@@ -4,6 +4,7 @@
 
 #import "JRLog.h"
 #include <unistd.h>
+#include <mach/mach_init.h>
 
 #if JRLogOverrideNSLog
     id self = nil;
@@ -103,11 +104,15 @@ NSString *JRLogLevelNames[] = {
         sessionUUID = NSMakeCollectable(CFUUIDCreateString(kCFAllocatorDefault, uuid));
 #endif
         CFRelease(uuid);
+#ifdef __IPHONE_OS_VERSION_MIN_REQUIRED
+        tryDO = NO;
+#else
         [[NSDistributedNotificationCenter defaultCenter] addObserver:self
                                                             selector:@selector(destinationDOAvailable:)
                                                                 name:@"JRLogDestinationDOAvailable"
                                                               object:nil];
         tryDO = YES;
+#endif
     }
     return self;
 }
@@ -119,7 +124,9 @@ NSString *JRLogLevelNames[] = {
 - (void)logWithCall:(JRLogCall*)call_ {
     if (tryDO) {
         tryDO = NO;
-        destination = [[NSConnection rootProxyForConnectionWithRegisteredName:@"JRLogDestinationDO" host:nil] retain];
+#ifndef __IPHONE_OS_VERSION_MIN_REQUIRED
+        destination = (id)[[NSConnection rootProxyForConnectionWithRegisteredName:@"JRLogDestinationDO" host:nil] retain];
+#endif
     }
     if (destination) {
         NS_DURING
@@ -179,8 +186,8 @@ NSString *JRLogLevelNames[] = {
 }
 - (NSString*)formattedMessageWithCall:(JRLogCall*)call_ {
     // "yyy-MM-dd HH:mm:ss.S MyProcess[PID:TASK] INFO MyClass.m:123: blah blah"
-    NSString *threadID = [NSString stringWithFormat:@"%lx", mach_thread_self()];
-    return [NSString stringWithFormat:@"%@ %@[%ld:%@] %@ %@:%u: %@",
+    NSString *threadID = [NSString stringWithFormat:@"%x", mach_thread_self()];
+    return [NSString stringWithFormat:@"%@ %@[%d:%@] %@ %@:%u: %@",
             [dateFormatter stringFromDate:[NSDate date]],
             [[NSProcessInfo processInfo] processName],
             getpid(),
@@ -191,8 +198,6 @@ NSString *JRLogLevelNames[] = {
             call_->message];
 }
 @end
-
-
 
 //
 //
@@ -224,7 +229,7 @@ static void LoadJRLogSettings() {
     [settings addEntriesFromDictionary:[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]];
     
     NSArray *keys = [settings allKeys];
-    unsigned keyIndex = 0, keyCount = [keys count];
+    unsigned keyIndex = 0, keyCount = (unsigned)[keys count];
     for(; keyIndex < keyCount; keyIndex++) {
         NSString *key = [keys objectAtIndex:keyIndex];
         if ([key hasPrefix:@"JRLogLevel"]) {
@@ -302,7 +307,7 @@ JRLog(
     
     id<JRLogLogger> logger = JRLogGetLogger();
     JRLogCall *call = [[[JRLogCall alloc] initWithLevel:callerLevel_
-                                               instance:self_ ? [NSString stringWithFormat:@"<%@: %p>", [self_ className], self_] : @"nil"
+                                               instance:self_ ? [NSString stringWithFormat:@"<%@: %p>", [self_ class], self_] : @"nil"
                                                    file:file_
                                                    line:line_
                                                function:function_
@@ -341,7 +346,7 @@ JRLogAssertionFailure(
     
     id<JRLogLogger> logger = JRLogGetLogger();
     JRLogCall *call = [[[JRLogCall alloc] initWithLevel:JRLogLevel_Assert
-                                               instance:self_ ? [NSString stringWithFormat:@"<%@: %p>", [self_ className], self_] : @"nil"
+                                               instance:self_ ? [NSString stringWithFormat:@"<%@: %p>", [self_ class], self_] : @"nil"
                                                    file:file_
                                                    line:line_
                                                function:function_
@@ -364,22 +369,18 @@ void JRLogSetDefaultLevel(JRLogLevel level_) {
     sDefaultJRLogLevel = level_;
 }
 
-NSMapTable* classLoggingLevels() {
-    static NSMapTable *sClassLoggingLevels = NULL;
+NSMutableDictionary* classLoggingLevels() {
+    static NSMutableDictionary *sClassLoggingLevels = NULL;
     if (!sClassLoggingLevels) {
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-        sClassLoggingLevels = NSCreateMapTable(NSIntMapKeyCallBacks, NSIntMapValueCallBacks, 32);
-#else
-        sClassLoggingLevels = NSCreateMapTable(NSIntegerMapKeyCallBacks, NSIntegerMapValueCallBacks, 32);
-#endif
+        sClassLoggingLevels = [[NSMutableDictionary alloc] initWithCapacity:64];
     }
     return sClassLoggingLevels;
 }
 
 JRLogLevel JRLogGetClassLevel(Class class_) {
-    void *mapValue = NSMapGet(classLoggingLevels(), class_);
-    if (mapValue) {
-        return (JRLogLevel)mapValue;
+    NSNumber *value = [classLoggingLevels() objectForKey:class_];
+    if (value) {
+        return [value intValue];
     } else {
         Class superclass = [class_ superclass];
         return superclass ? JRLogGetClassLevel(superclass) : JRLogLevel_UNSET;
@@ -388,9 +389,18 @@ JRLogLevel JRLogGetClassLevel(Class class_) {
 
 void JRLogSetClassLevel(Class class_, JRLogLevel level_) {
     if (JRLogLevel_UNSET == level_) {
-        NSMapRemove(classLoggingLevels(), class_);
+        [classLoggingLevels() removeObjectForKey:class_];
     } else {
-        NSMapInsert(classLoggingLevels(), class_, (const void*)level_);
+        // Can't use
+        //   [classLoggingLevels() setObject:[NSNumber numberWithInt:level_] forKey:class_];
+        // since -[NSMutableDictionary setObject:forKey:] is documented as copying its
+        // key (NSCopying) and Class doesn't support that protocol. So we use
+        // CFDictionarySetValue() which doesn't copy the key. See
+        // http://www.cocoabuilder.com/archive/cocoa/167178-objects-as-keys-nsmutabledictionary.html
+        // for background info.
+        CFDictionarySetValue((CFMutableDictionaryRef)classLoggingLevels(),
+                             (const void*)class_,
+                             (const void*)[NSNumber numberWithInt:level_]);
     }
 }
 
